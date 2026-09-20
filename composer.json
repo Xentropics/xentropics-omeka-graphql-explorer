@@ -1,0 +1,29 @@
+{
+    "name": "xentropics/xentropics-omeka-graphql-explorer",
+    "description": "GraphiQL in the Omeka S admin, for the GraphQL module's endpoint.",
+    "type": "omeka-s-module",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.8.0",
+        "laminas/laminas-mvc": "^3.3",
+        "laminas/laminas-router": "^3.9",
+        "laminas/laminas-servicemanager": "^3.1",
+        "laminas/laminas-view": "^2.8",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "OmekaGraphQLExplorer\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix"
+    }
+}

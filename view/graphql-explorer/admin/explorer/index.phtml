@@ -1,0 +1,128 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var \OmekaGraphQL\Entity\SchemaVersion[] $versions served versions
+ * @var \OmekaGraphQL\Entity\SchemaVersion|null $selected
+ * @var bool $stale
+ * @var \OmekaGraphQL\Schema\Definition\ExecutionLimits $limits
+ * @var list<\OmekaGraphQLExplorer\Sample\SampleQuery> $samples
+ * @var bool $introspection
+ */
+$translate = $this->plugin('translate');
+$escape = $this->plugin('escapeHtml');
+$this->htmlElement('body')->appendAttribute('class', 'graphql-explorer');
+// GraphiQL follows the operating system into dark mode unless the body says
+// otherwise, and the admin around it has no dark mode to follow it there.
+$this->htmlElement('body')->appendAttribute('class', 'graphiql-light');
+?>
+
+<?php echo $this->pageTitle($translate('GraphQL explorer')); ?>
+
+<?php if (null === $selected): ?>
+
+<div class="no-resources">
+    <p>
+        <?php echo $translate('No version is being served, so there is no endpoint to query. Generate a version and serve it first.'); ?>
+    </p>
+</div>
+
+<?php else: ?>
+
+<?php
+$endpoint = $this->url('graphql/version', ['version' => $selected->getVersion()]);
+$asset = fn (string $file): string => $this->assetUrl('vendor/' . $file, 'OmekaGraphQLExplorer');
+
+$this->headLink()->appendStylesheet($asset('graphiql.min.css'));
+$this->headLink()->appendStylesheet($this->assetUrl('css/graphql-explorer.css', 'OmekaGraphQLExplorer'));
+// React first: the GraphiQL bundle is UMD and reads both off the window.
+$this->headScript()->appendFile($asset('react.production.min.js'));
+$this->headScript()->appendFile($asset('react-dom.production.min.js'));
+$this->headScript()->appendFile($asset('graphiql.min.js'));
+$this->headScript()->appendFile($this->assetUrl('js/graphql-explorer.js', 'OmekaGraphQLExplorer'), 'text/javascript', ['defer' => true]);
+?>
+
+<div id="page-actions">
+    <?php echo $this->hyperlink($translate('Schema versions'), $this->url('admin/graphql'), ['class' => 'button']); ?>
+</div>
+
+<div class="graphql-explorer-toolbar">
+
+<form class="graphql-explorer-version" method="get" action="<?php echo $escape($this->url('admin/graphql-explorer')); ?>">
+    <label for="graphql-version"><?php echo $translate('Version'); ?></label>
+    <select id="graphql-version" name="version">
+        <?php foreach ($versions as $version): ?>
+        <option value="<?php echo $escape((string) $version->getVersion()); ?>"<?php echo $version->getId() === $selected->getId() ? ' selected' : ''; ?>>
+            <?php echo $escape(sprintf(
+                $version->isDefault() ? $translate('v%d (default)') : $translate('v%d'),
+                $version->getVersion()
+            )); ?>
+        </option>
+        <?php endforeach; ?>
+    </select>
+    <button type="submit" class="button"><?php echo $translate('Switch'); ?></button>
+    <code class="graphql-endpoint"><?php echo $escape($endpoint); ?></code>
+</form>
+
+<?php
+// Beside the version picker rather than under it, and outside that form: this
+// select is never submitted anywhere, it loads into the editor. Ten samples
+// as ten cards were ten cards' worth of page for something read once.
+?>
+<?php if ([] !== $samples): ?>
+<div class="graphql-samples">
+    <label for="graphql-sample"><?php echo $translate('Sample'); ?></label>
+    <select id="graphql-sample">
+        <option value=""><?php echo $escape(sprintf(
+            $translate('Load a sample written for v%d…'),
+            $selected->getVersion()
+        )); ?></option>
+        <?php foreach ($samples as $index => $sample): ?>
+        <option value="<?php echo $escape((string) $index); ?>"
+                data-query="<?php echo $escape($sample->query); ?>"
+                data-description="<?php echo $escape($translate($sample->description)); ?>">
+            <?php echo $escape($translate($sample->title)); ?>
+        </option>
+        <?php endforeach; ?>
+    </select>
+</div>
+<?php endif; ?>
+
+</div>
+
+<p class="graphql-explorer-note">
+    <?php echo $translate('Queries run against the real endpoint, signed in as you. An admin sees more here than an anonymous client will: results are filtered per identity, so check a public query with an API key or a logged-out browser before concluding that something is visible.'); ?>
+    <?php echo $escape(sprintf(
+        $translate('Limits for this version: depth %1$d, complexity %2$d, page size %3$d by default and %4$d at most.'),
+        $limits->maxDepth,
+        $limits->maxComplexity,
+        $limits->defaultPageSize,
+        $limits->maxPageSize
+    )); ?>
+    <?php if ($stale): ?>
+    <br>
+    <?php echo $translate('This version is stale — the templates have changed since it was generated — which changes nothing about what it answers here.'); ?>
+    <?php endif; ?>
+    <?php if (!$introspection): ?>
+    <br>
+    <?php echo $translate('Introspection is disabled for this endpoint, so the documentation sidebar and completions will not load. Queries still run. Download the SDL from the version page, or enable introspection in the module configuration.'); ?>
+    <?php endif; ?>
+</p>
+
+<?php
+// What a sample teaches is a sentence, and a sentence per sample is a wall of
+// them. This is the one line where it is worth reading: the sample just
+// loaded. The messages live on the element rather than in the script, which is
+// a static asset with no translator to call.
+?>
+<p class="graphql-samples-status" role="status"
+   data-unavailable-message="<?php echo $escape($translate('“%s” could not be loaded: the editor is not ready yet.')); ?>"></p>
+
+<div id="graphiql" class="graphql-graphiql" data-endpoint="<?php echo $escape($endpoint); ?>">
+    <p class="graphql-explorer-loading"><?php echo $translate('Loading the editor…'); ?></p>
+</div>
+
+<noscript>
+    <p><?php echo $translate('The explorer is a JavaScript client. Without it, query the endpoint directly and read the SDL from the version page.'); ?></p>
+</noscript>
+
+<?php endif; ?>

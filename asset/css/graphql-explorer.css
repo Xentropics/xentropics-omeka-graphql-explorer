@@ -1,0 +1,152 @@
+/*
+ * The page around GraphiQL, and GraphiQL itself dressed as Omeka.
+ *
+ * GraphiQL 4 takes its entire palette from custom properties declared on
+ * `.graphiql-container`, so it can be themed without touching the vendored
+ * bundle: the block below restates them in Omeka's own colours and fonts.
+ * That is the whole of the theming — anything reaching past those properties
+ * into GraphiQL's class names would be a fork of a file we do not own.
+ */
+
+.graphiql-container,
+.CodeMirror-info,
+.CodeMirror-lint-tooltip,
+.graphiql-dialog,
+.graphiql-dialog-overlay,
+.graphiql-tooltip,
+[data-radix-popper-content-wrapper] {
+    /* Omeka's $red and $blue, the two colours the admin theme is built from.
+       Primary carries the buttons, the links and the GraphQL keywords; neutral
+       is the text colour, and every surface and border is it at low alpha. */
+    --color-primary: 0, 74%, 38%;      /* #A91919 */
+    --color-neutral: 215, 20%, 32%;    /* #404E61 */
+    --color-base: 0, 0%, 100%;
+
+    /* The rest of the syntax palette. Omeka has no opinion on five more hues,
+       so these are the quietest ones that stay apart from each other and from
+       the red: slate for variables, teal for definitions, blue for response
+       keys. All dark enough to read as text on white. */
+    --color-secondary: 215, 25%, 38%;
+    --color-tertiary: 188, 60%, 28%;
+    --color-info: 214, 45%, 38%;
+
+    /* Omeka's status colours: `green` and `orange`, darkened to the point
+       where they are legible as text rather than as a message background. */
+    --color-success: 120, 55%, 26%;
+    --color-warning: 36, 100%, 28%;
+    --color-error: 0, 74%, 46%;
+
+    /* The admin loads both of these; without them the fallbacks are the same
+       ones Omeka itself falls back to. */
+    --font-family: "Lato", sans-serif;
+    --font-family-mono: "Source Code Pro", monospace;
+
+    /* Omeka rounds everything to 3px. GraphiQL's pills and cards are rounder
+       than anything else on the page, which is what makes them read as a
+       foreign widget more than the colours do. */
+    --border-radius-2: 2px;
+    --border-radius-4: 3px;
+    --border-radius-8: 3px;
+    --border-radius-12: 4px;
+}
+
+/*
+ * The toolbar: which version, and a sample to start from. One row when there
+ * is room for one, because neither question is worth a row of its own.
+ */
+
+.graphql-explorer-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5em 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.graphql-explorer-version,
+.graphql-samples {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75em;
+}
+
+/* Omeka gives form controls a bottom margin, which a row of them does not
+   want: the row spaces itself. */
+.graphql-explorer-version select,
+.graphql-explorer-version .button,
+.graphql-samples select {
+    margin-bottom: 0;
+}
+
+.graphql-explorer-version label,
+.graphql-samples label {
+    font-weight: bold;
+}
+
+.graphql-explorer-version select {
+    width: auto;
+    min-width: 9em;
+}
+
+/* Wide enough for the longest sample title rather than for the placeholder,
+   so choosing one does not resize the row. */
+.graphql-samples select {
+    width: auto;
+    max-width: 100%;
+    min-width: 18em;
+}
+
+.graphql-endpoint {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 0.15em 0.45em;
+    border-radius: 3px;
+}
+
+.graphql-explorer-note {
+    max-width: 70em;
+    color: #676767;
+    font-size: 0.9em;
+}
+
+/*
+ * What the sample just loaded is for. One line, and the height is held whether
+ * or not anything has been said, so saying it does not shift the editor down.
+ * It is also the live region that reports the load to a screen reader, which
+ * a select changing the contents of an editor elsewhere otherwise would not.
+ */
+.graphql-samples-status {
+    min-height: 1.5em;
+    margin: 0.4em 0;
+    color: #676767;
+    font-size: 0.85em;
+}
+
+.graphql-samples-status b {
+    color: #404E61;
+}
+
+/*
+ * GraphiQL asks for the height of its container as `height: 100%`, and a
+ * percentage resolves against a definite height or not at all. So this is a
+ * length: the viewport less the admin chrome above it, which is the closest
+ * thing to "the rest of the page" that does not need measuring.
+ *
+ * Deliberately not a share of the space the samples leave. Sizing it that way
+ * needs a flexible parent, which leaves the percentage inside it unresolved —
+ * GraphiQL then keeps whatever height its content had when it mounted, and
+ * stops following the container at all. Opening the samples scrolls the page
+ * instead of shortening the editor, which is the lesser of the two.
+ */
+.graphql-graphiql {
+    height: calc(100vh - 19em);
+    min-height: 20em;
+    border: 1px solid #dfdfdf;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.graphql-explorer-loading {
+    padding: 1em;
+    color: #676767;
+}
