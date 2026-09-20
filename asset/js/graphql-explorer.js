@@ -178,13 +178,13 @@
      * removed rather than hidden because Omeka styles `.button` with an
      * explicit `display`, which beats the `hidden` attribute.
      *
-     * Choosing a version changes the page, which WCAG 3.2.2 allows on input
-     * only where the behaviour is advised beforehand — the view says so next
-     * to the label. The keyboard path needs more than a `change` listener:
-     * arrowing through a closed select fires `change` on every option it
-     * passes, so a reader would be navigated away from the one they were
-     * heading for. Arrowing is therefore treated as browsing, and Enter or
-     * leaving the field as choosing.
+     * Choosing a version changes the page. WCAG 3.2.2 allows that on input
+     * only where the behaviour is advised beforehand, and the hint that did
+     * so was removed from the view. The keyboard path needs more than a
+     * `change` listener: arrowing through a closed select fires `change` on
+     * every option it passes, so a reader would be navigated away from the
+     * one they were heading for. Arrowing is therefore treated as browsing,
+     * and Enter or leaving the field as choosing.
      */
     function wireVersionPicker() {
         var picker = document.getElementById('graphql-version');
