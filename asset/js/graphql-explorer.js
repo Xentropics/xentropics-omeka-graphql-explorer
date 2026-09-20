@@ -1,6 +1,6 @@
 /**
  * Mounts the vendored GraphiQL against the version this page selected, and
- * wires the sample queries beside it to its editor.
+ * wires the sample picker above it to its editor.
  *
  * The fetcher is written out here rather than taken from
  * `GraphiQL.createFetcher` so that two things stay explicit: the session cookie
@@ -21,7 +21,7 @@
     }
 
     var endpoint = mount.getAttribute('data-endpoint');
-    var samples = document.querySelector('.graphql-samples-list');
+    var samples = document.getElementById('graphql-sample');
     var status = document.querySelector('.graphql-samples-status');
     // Keyed per version, so switching versions in the picker does not hand the
     // next schema a draft written against the previous one.
@@ -76,7 +76,7 @@
      * has one source of examples rather than two that can disagree.
      */
     function firstSample() {
-        var first = samples && samples.querySelector('.graphql-sample');
+        var first = samples && samples.querySelector('option[data-query]');
         return first
             ? first.getAttribute('data-query')
             : '# The schema is generated from your resource templates.\n'
@@ -85,39 +85,35 @@
     }
 
     /**
-     * Clicking a sample writes it into the query editor.
+     * Choosing a sample writes it into the query editor.
      *
-     * Delegated, so it covers the samples whether or not the panel was open
-     * when the page loaded, and bound after the render above because the
-     * editor it writes into does not exist until React has mounted.
+     * On change rather than behind a button: there is nothing to confirm, and
+     * what the choice did is visible in the editor a line below. Bound after
+     * the render above, because the editor it writes into does not exist until
+     * React has mounted.
+     *
+     * The editor opens on the first sample, so the picker opens showing it.
      */
     function wireSamples() {
         if (!samples) {
             return;
         }
 
-        samples.addEventListener('click', function (event) {
-            var button = event.target.closest('.graphql-sample');
-            if (button) {
-                load(button.getAttribute('data-query'), button.querySelector('.graphql-sample-title').textContent);
+        var first = samples.querySelector('option[data-query]');
+        if (first) {
+            first.selected = true;
+        }
+
+        samples.addEventListener('change', function () {
+            var option = samples.options[samples.selectedIndex];
+            var query = option && option.getAttribute('data-query');
+            if (query) {
+                load(query, option.textContent.trim(), option.getAttribute('data-description'));
             }
         });
-
-        var panel = samples.closest('.graphql-samples');
-        if (panel) {
-            // Whether the samples are worth their screen height is a judgement
-            // about how well someone already knows the schema, so it is theirs
-            // to make once rather than on every page load.
-            if ('closed' === storage.getItem('samplesOpen')) {
-                panel.open = false;
-            }
-            panel.addEventListener('toggle', function () {
-                storage.setItem('samplesOpen', panel.open ? 'open' : 'closed');
-            });
-        }
     }
 
-    function load(query, title) {
+    function load(query, title, description) {
         // CodeMirror 5 hangs its instance off the element it wraps, which is
         // the only handle on the editor from outside React: the UMD bundle
         // exports the component and nothing of its context.
@@ -138,10 +134,30 @@
         );
         editor.setCursor({ line: 0, ch: 0 });
         editor.focus();
-        announce(status && status.getAttribute('data-loaded-message'), title);
+        describe(title, description);
     }
 
-    /** Says what just happened, for anyone whose focus was not on the editor. */
+    /**
+     * Says what the sample is for, where a screen reader will read it too.
+     *
+     * This is where the descriptions live now. One of them beside the editor
+     * when it is the one you just chose is worth reading; all ten at once,
+     * above the editor, were a wall to scroll past on every visit.
+     */
+    function describe(title, description) {
+        if (!status) {
+            return;
+        }
+        status.textContent = '';
+        var name = document.createElement('b');
+        name.textContent = title;
+        status.appendChild(name);
+        if (description) {
+            status.appendChild(document.createTextNode(' — ' + description));
+        }
+    }
+
+    /** Says that the editor was not there to write into. */
     function announce(template, title) {
         if (status && template) {
             status.textContent = template.replace('%s', title);
