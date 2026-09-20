@@ -31,8 +31,19 @@ final class SampleQueryFactory
     /** Fields to select on a list sample before it stops being readable. */
     private const FIELDS_SHOWN = 4;
 
+    /**
+     * @param list<int> $unusedTemplateIds Templates the generator saw no
+     *     resource using. A sample built on one of those runs correctly and
+     *     answers `totalCount: 0`, which teaches nothing about the collection
+     *     and reads as a broken example. Omeka ships a "Base Resource"
+     *     template that most installations never assign to anything and that
+     *     carries more properties than any real template, so without this it
+     *     wins on field count and every sample is written against the one type
+     *     holding no data.
+     */
     public function __construct(
-        private readonly NameFactory $names = new NameFactory()
+        private readonly NameFactory $names = new NameFactory(),
+        private readonly array $unusedTemplateIds = []
     ) {
     }
 
@@ -427,8 +438,17 @@ final class SampleQueryFactory
     /** @return list<TypeDefinition> */
     private function rankedTypes(SchemaDefinition $definition): array
     {
+        $unused = $this->unusedTemplateIds;
         $types = $definition->types;
-        usort($types, static function (TypeDefinition $a, TypeDefinition $b): int {
+        usort($types, static function (TypeDefinition $a, TypeDefinition $b) use ($unused): int {
+            // A type with nothing behind it goes last whatever else it has
+            // going for it: a sample that lists an empty collection is a
+            // sample that demonstrates nothing.
+            $used = (int) !in_array($b->templateId, $unused, true)
+                <=> (int) !in_array($a->templateId, $unused, true);
+            if (0 !== $used) {
+                return $used;
+            }
             $items = (int) $b->hasResourceType(TypeDefinition::RESOURCE_TYPE_ITEMS)
                 <=> (int) $a->hasResourceType(TypeDefinition::RESOURCE_TYPE_ITEMS);
             if (0 !== $items) {

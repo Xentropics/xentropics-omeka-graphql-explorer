@@ -76,7 +76,16 @@ a link followed through the `Resource` interface, an item's media, an item
 set's contents, which values were substituted, and what introspection answers.
 A sample whose shape the version cannot answer is left out rather than shown
 broken: no media-backed template, no media sample; introspection disabled, no
-introspection sample. Each declares any variable it needs with a default, so
+introspection sample. Which type they are written against comes from the
+version's own generation report: a template the generator saw no resource
+using is ranked last, because a sample built on it runs correctly and answers
+`totalCount: 0`. Omeka ships a "Base Resource" template that most
+installations never assign to anything and that carries more properties than
+any template a curator writes, so without that it wins on richness and every
+sample is written against the one type holding no data. Only the listing is
+held to it — a sample about following links has to use a type that has links,
+and demonstrating the feature against an empty type beats not demonstrating
+it. Each declares any variable it needs with a default, so
 it runs from the editor without the variables pane being filled in first.
 
 Choosing one writes it into the editor as an ordinary edit rather than a

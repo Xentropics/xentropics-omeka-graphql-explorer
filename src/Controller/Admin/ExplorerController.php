@@ -6,6 +6,7 @@ use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 use OmekaGraphQL\Omeka\ModuleSettings;
 use OmekaGraphQL\Omeka\SchemaVersionRepository;
+use OmekaGraphQL\Schema\Generator\GenerationReport;
 use OmekaGraphQL\Schema\SchemaService;
 use OmekaGraphQLExplorer\Sample\SampleQueryFactory;
 
@@ -24,8 +25,7 @@ class ExplorerController extends AbstractActionController
     public function __construct(
         private readonly SchemaService $schemaService,
         private readonly SchemaVersionRepository $versions,
-        private readonly ModuleSettings $settings,
-        private readonly SampleQueryFactory $samples = new SampleQueryFactory()
+        private readonly ModuleSettings $settings
     ) {
     }
 
@@ -51,10 +51,33 @@ class ExplorerController extends AbstractActionController
             'limits' => $definition->limits,
             // Written against this version, because every name a sample could
             // use comes from this installation's templates.
-            'samples' => $this->samples->forDefinition($definition, $introspection),
+            'samples' => $this->sampleFactory($selected)->forDefinition($definition, $introspection),
             'introspection' => $introspection,
         ]);
         return $view->setTemplate('graphql-explorer/admin/explorer/index');
+    }
+
+    /**
+     * A factory that knows which of this version's types have nothing behind
+     * them.
+     *
+     * The generation report already recorded it: a template no resource used
+     * when the version was generated is one whose samples can only answer
+     * `totalCount: 0`. Reading it here rather than counting resources keeps
+     * the page free of queries it would run on every visit, and keeps the
+     * answer consistent with the version rather than with the collection as it
+     * stands now.
+     */
+    private function sampleFactory(\OmekaGraphQL\Entity\SchemaVersion $version): SampleQueryFactory
+    {
+        $unused = [];
+        foreach ($this->schemaService->report($version)->entriesWithCode(GenerationReport::NO_OBSERVED_RESOURCES) as $entry) {
+            if (null !== ($entry['templateId'] ?? null)) {
+                $unused[] = (int) $entry['templateId'];
+            }
+        }
+
+        return new SampleQueryFactory(unusedTemplateIds: $unused);
     }
 
     /**

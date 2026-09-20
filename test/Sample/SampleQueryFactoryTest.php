@@ -141,6 +141,52 @@ final class SampleQueryFactoryTest extends TestCase
     /**
      * @param list<SampleQuery> $samples
      */
+    /**
+     * Omeka ships a "Base Resource" template that most installations never
+     * assign to anything, and it carries more properties than any template a
+     * curator writes. Ranked on fields alone it wins every time, and then
+     * every sample is written against the one type holding no data — they run,
+     * and they answer `totalCount: 0`.
+     */
+    public function testSamplesAreNotWrittenAgainstATypeWithNothingBehindIt(): void
+    {
+        $definition = Definitions::complete();
+
+        // Photo is the richest type and would otherwise be picked; template 1
+        // is the one the generator saw no resource using.
+        $samples = (new SampleQueryFactory(unusedTemplateIds: [1]))->forDefinition($definition);
+
+        $list = null;
+        foreach ($samples as $sample) {
+            if (str_starts_with($sample->title, 'A page of')) {
+                $list = $sample;
+            }
+        }
+
+        self::assertNotNull($list);
+        self::assertSame('A page of Person', $list->title);
+        self::assertStringContainsString('personList', $list->query);
+
+        // Only the listing is held to this. A sample about following links or
+        // about substitution has to use a type that has those, and Photo is
+        // the only one here that does — demonstrating the feature against an
+        // empty type beats not demonstrating it.
+    }
+
+    public function testAnUnusedTypeIsStillOfferedWhenEveryTypeIsUnused(): void
+    {
+        $definition = Definitions::complete();
+        $factory = new SampleQueryFactory(unusedTemplateIds: [1, 2, 3, 4]);
+
+        $samples = $factory->forDefinition($definition);
+
+        // Nothing to prefer is not a reason to offer nothing: the samples
+        // still have to parse against the version, which is what the rest of
+        // this suite is about.
+        self::assertNotEmpty($samples);
+        $this->assertAllValid($samples, $definition);
+    }
+
     private function assertAllValid(array $samples, SchemaDefinition $definition): void
     {
         $schema = $this->schema($definition);
