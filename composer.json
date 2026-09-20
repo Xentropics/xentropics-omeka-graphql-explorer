@@ -19,11 +19,17 @@
             "OmekaGraphQLExplorer\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "OmekaGraphQLExplorerTest\\": "test/"
+        }
+    },
     "config": {
         "sort-packages": true
     },
     "scripts": {
         "cs-check": "php-cs-fixer fix --dry-run --diff",
-        "cs-fix": "php-cs-fixer fix"
+        "cs-fix": "php-cs-fixer fix",
+        "test": "phpunit"
     }
 }

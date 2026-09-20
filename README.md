@@ -62,11 +62,12 @@ can be compared side by side without their drafts colliding.
 
 ## Sample queries
 
-Above the editor is a panel of examples, and the editor opens on the first of
-them. They are generated from the version being explored rather than kept as a
-file of fixtures, because there is nothing to hard-code: every type and field
-name a client can write comes from this installation's resource templates, so
-an example naming `Item` or `title` is an example that does not run here.
+Beside the version picker is a **Sample** select, and the editor opens on the
+first entry in it. They are generated from the version being explored rather
+than kept as a file of fixtures, because there is nothing to hard-code: every
+type and field name a client can write comes from this installation's resource
+templates, so an example naming `Item` or `title` is an example that does not
+run here.
 
 What is stable is the shape of the questions, and that is what
 [`SampleQueryFactory`](src/Sample/SampleQueryFactory.php) builds, filling in
@@ -78,9 +79,11 @@ broken: no media-backed template, no media sample; introspection disabled, no
 introspection sample. Each declares any variable it needs with a default, so
 it runs from the editor without the variables pane being filled in first.
 
-Loading one replaces what is in the editor through an ordinary edit rather
-than a reset, so undo puts back whatever was being written. Whether the panel
-is open is remembered per version.
+Choosing one writes it into the editor as an ordinary edit rather than a
+reset, so undo puts back whatever was being written, and the line under the
+picker says what that sample is for. The descriptions are one line each on
+demand for a reason: as a grid of cards they were a screenful to scroll past
+on every visit, in a page whose whole point is the editor underneath them.
 
 ## Theming
 
@@ -116,12 +119,30 @@ to 18 for the same reason — 19 dropped its UMD builds.
 composer install
 composer cs-check    # php-cs-fixer, dry run
 composer cs-fix
+composer test        # phpunit
 ```
 
 Laminas is pinned in `require-dev` so an editor can resolve it; `Omeka\…` and
 `OmekaGraphQL\…` come from the workspace rather than from composer. See the
 endpoint module's README for why Omeka S cannot be a composer dependency and
 what to do instead.
+
+The test suite is one question — do the generated samples still agree with the
+schema the endpoint builds? — and answering it needs the endpoint module,
+which is not a composer dependency for the reason above. So
+[`test/bootstrap.php`](test/bootstrap.php) finds it the way Omeka does, next
+door: `../OmekaGraphQL` where Omeka requires the directory to carry the
+namespace, or `../xentropics-omeka-graphql` where the two repositories are
+checked out side by side. `OMEKA_GRAPHQL_PATH` overrides both.
+
+```sh
+OMEKA_GRAPHQL_PATH=/path/to/modules/OmekaGraphQL composer test
+```
+
+Not finding it fails the run rather than skipping it. A suite whose only job
+is to prove the samples still fit has nothing to report when it cannot see
+what they are supposed to fit, and reporting that as green is worse than
+reporting nothing.
 
 `.php-cs-fixer.dist.php` is Omeka S's own ruleset copied verbatim, with a finder
 for a module rather than for core.
