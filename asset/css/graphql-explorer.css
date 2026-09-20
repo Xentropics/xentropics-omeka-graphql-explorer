@@ -103,6 +103,13 @@
     border-radius: 3px;
 }
 
+/* Says that choosing a version opens it, which is what lets the picker do
+   without a submit button. */
+.graphql-explorer-hint {
+    color: #676767;
+    font-size: 0.9em;
+}
+
 .graphql-explorer-note {
     max-width: 70em;
     color: #676767;

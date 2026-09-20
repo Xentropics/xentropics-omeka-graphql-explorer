@@ -60,6 +60,14 @@ Two consequences the page states rather than leaves to be discovered:
 Each version keeps its own tabs and history, per browser tab, so two versions
 can be compared side by side without their drafts colliding.
 
+The version picker opens the version you choose; there is no button to press
+after choosing, which is why it says so beside the label. WCAG 3.2.2 allows a
+change of context on input only where the behaviour was advised first. The
+keyboard path needs more than a `change` listener, because arrowing through a
+closed select fires one per option passed: arrowing is treated as browsing,
+Enter or leaving the field as choosing. Without JavaScript the form is a plain
+GET and the button is still there to submit it.
+
 ## Sample queries
 
 Beside the version picker is a **Sample** select, and the editor opens on the

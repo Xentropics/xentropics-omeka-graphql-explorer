@@ -10,6 +10,10 @@
 (function () {
     'use strict';
 
+    // Wired before the editor, and outside its guard: switching version is how
+    // you get off a version whose schema failed to load.
+    wireVersionPicker();
+
     var mount = document.getElementById('graphiql');
     if (!mount) {
         return;
@@ -162,6 +166,72 @@
         if (status && template) {
             status.textContent = template.replace('%s', title);
         }
+    }
+
+    /**
+     * The version picker navigates on choice, so its submit button goes.
+     *
+     * Removed here rather than left out of the markup: the form is a plain GET
+     * that works without any of this, and the button is the only thing that
+     * makes it work. Nothing else on the page survives without JavaScript, but
+     * that is a reason to keep the one part that does, not to break it. It is
+     * removed rather than hidden because Omeka styles `.button` with an
+     * explicit `display`, which beats the `hidden` attribute.
+     *
+     * Choosing a version changes the page, which WCAG 3.2.2 allows on input
+     * only where the behaviour is advised beforehand — the view says so next
+     * to the label. The keyboard path needs more than a `change` listener:
+     * arrowing through a closed select fires `change` on every option it
+     * passes, so a reader would be navigated away from the one they were
+     * heading for. Arrowing is therefore treated as browsing, and Enter or
+     * leaving the field as choosing.
+     */
+    function wireVersionPicker() {
+        var picker = document.getElementById('graphql-version');
+        if (!picker || !picker.form) {
+            return;
+        }
+
+        var submitButton = picker.form.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.remove();
+        }
+
+        var current = picker.value;
+        var browsing = false;
+        var submitted = false;
+
+        function go() {
+            browsing = false;
+            if (!submitted && picker.value !== current) {
+                submitted = true;
+                picker.form.submit();
+            }
+        }
+
+        picker.addEventListener('keydown', function (event) {
+            if ('ArrowUp' === event.key || 'ArrowDown' === event.key) {
+                browsing = true;
+            } else if ('Enter' === event.key) {
+                event.preventDefault();
+                go();
+            }
+        });
+
+        picker.addEventListener('change', function () {
+            if (!browsing) {
+                go();
+            }
+        });
+
+        // Tabbing away commits what was arrowed to. Without this the choice
+        // would be silently dropped, the button that used to catch it being
+        // gone.
+        picker.addEventListener('blur', function () {
+            if (browsing) {
+                go();
+            }
+        });
     }
 
     /**

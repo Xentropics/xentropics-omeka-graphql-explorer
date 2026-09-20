@@ -49,7 +49,13 @@ $this->headScript()->appendFile($this->assetUrl('js/graphql-explorer.js', 'Omeka
 
 <form class="graphql-explorer-version" method="get" action="<?php echo $escape($this->url('admin/graphql-explorer')); ?>">
     <label for="graphql-version"><?php echo $translate('Version'); ?></label>
-    <select id="graphql-version" name="version">
+    <?php
+    // The hint is not decoration: the script hides the submit button and
+    // navigates on choice, and WCAG 3.2.2 allows a change of context on input
+    // only where the behaviour was advised first. Without a script the button
+    // stays and the hint is wrong by one click, which is the better way round.
+    ?>
+    <select id="graphql-version" name="version" aria-describedby="graphql-version-hint">
         <?php foreach ($versions as $version): ?>
         <option value="<?php echo $escape((string) $version->getVersion()); ?>"<?php echo $version->getId() === $selected->getId() ? ' selected' : ''; ?>>
             <?php echo $escape(sprintf(
@@ -60,6 +66,7 @@ $this->headScript()->appendFile($this->assetUrl('js/graphql-explorer.js', 'Omeka
         <?php endforeach; ?>
     </select>
     <button type="submit" class="button"><?php echo $translate('Switch'); ?></button>
+    <span id="graphql-version-hint" class="graphql-explorer-hint"><?php echo $translate('Choosing a version opens it.'); ?></span>
     <code class="graphql-endpoint"><?php echo $escape($endpoint); ?></code>
 </form>
 
