@@ -1,0 +1,15 @@
+{
+	// The .code-workspace already puts ../omeka-s-src/src on includePaths for
+	// every folder, which is what makes `Omeka\…` resolve. This adds the one
+	// path only the explorer needs: Omeka loads both modules and hands this
+	// one the endpoint's services, a real dependency that composer cannot be
+	// told about — so Intelephense, which shares no symbols between workspace
+	// folders, has to be.
+	//
+	// Both entries are repeated because a folder-level value replaces the
+	// workspace-level one rather than extending it.
+	"intelephense.environment.includePaths": [
+		"../omeka-s-src/src",
+		"../xentropics-omeka-graphql/src"
+	]
+}
