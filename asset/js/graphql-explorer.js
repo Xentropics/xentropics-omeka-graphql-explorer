@@ -26,13 +26,30 @@
 
     var endpoint = mount.getAttribute('data-endpoint');
     var samples = document.getElementById('graphql-sample');
+    var format = document.getElementById('graphql-format');
     var status = document.querySelector('.graphql-samples-status');
     // Keyed per version, so switching versions in the picker does not hand the
     // next schema a draft written against the previous one.
     var storage = makeStorage('omekaGraphQL.v' + (endpoint.split('/v')[1] || 'default') + '.');
 
+    /**
+     * Which URL a query goes to, which is where the answer's format is asked
+     * for.
+     *
+     * Never for introspection. GraphiQL's documentation sidebar and its
+     * completions are introspection queries sent through this same fetcher,
+     * and they read a GraphQL result: answered as a graph they would leave the
+     * editor with no schema to check against, which looks like the endpoint
+     * being broken rather than like a format having been chosen.
+     */
+    function urlFor(graphQLParams) {
+        var wantsGraph = format && 'jsonld' === format.value;
+        var introspection = /\b__schema\b|\b__type\b/.test(graphQLParams.query || '');
+        return wantsGraph && !introspection ? endpoint + '?format=jsonld' : endpoint;
+    }
+
     function fetcher(graphQLParams) {
-        return fetch(endpoint, {
+        return fetch(urlFor(graphQLParams), {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -74,6 +91,26 @@
     );
 
     wireSamples();
+    wireFormat();
+
+    /**
+     * The answer format is a property of the next request, not of the one
+     * already shown, so choosing one says so rather than silently changing
+     * what the pane below means.
+     */
+    function wireFormat() {
+        if (!format) {
+            return;
+        }
+        format.addEventListener('change', function () {
+            var message = status && status.getAttribute(
+                'jsonld' === format.value ? 'data-jsonld-message' : 'data-json-message'
+            );
+            if (status && message) {
+                status.textContent = message;
+            }
+        });
+    }
 
     /**
      * The query the editor opens on, taken from the first sample so the page

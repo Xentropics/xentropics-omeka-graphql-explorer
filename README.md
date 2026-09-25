@@ -60,6 +60,22 @@ Two consequences the page states rather than leaves to be discovered:
 Each version keeps its own tabs and history, per browser tab, so two versions
 can be compared side by side without their drafts colliding.
 
+## Previewing JSON-LD
+
+**Answer as** on the toolbar chooses between the GraphQL JSON envelope and the
+JSON-LD the endpoint serves for the same query. Choosing JSON-LD appends
+`?format=jsonld` to the next request, so what the response pane shows is the
+document a client would get, not a rendering of it — the negotiation, the
+identifiers and the context are the endpoint's.
+
+Introspection is exempt. GraphiQL's documentation sidebar and its completions
+go through the same fetcher, and answered as a graph they would leave the
+editor with no schema to check against, which reads as a broken endpoint
+rather than as a format having been chosen.
+
+The choice applies to the next run, not to the answer already on screen, which
+the line under the toolbar says when you change it.
+
 The version picker opens the version you choose; there is no button to press
 after choosing, which is why it says so beside the label. WCAG 3.2.2 allows a
 change of context on input only where the behaviour was advised first. The

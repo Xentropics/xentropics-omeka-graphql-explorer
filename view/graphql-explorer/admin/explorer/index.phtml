@@ -87,6 +87,19 @@ $this->headScript()->appendFile($this->assetUrl('js/graphql-explorer.js', 'Omeka
 </div>
 <?php endif; ?>
 
+<?php
+// The endpoint answers the same query as a graph when asked to. Asking is a
+// query-string parameter, so the editor can offer it as a choice about the
+// answer rather than as something to remember to type.
+?>
+<div class="graphql-format">
+    <label for="graphql-format"><?php echo $translate('Answer as'); ?></label>
+    <select id="graphql-format">
+        <option value="json"><?php echo $translate('GraphQL JSON'); ?></option>
+        <option value="jsonld"><?php echo $translate('JSON-LD'); ?></option>
+    </select>
+</div>
+
 </div>
 
 <p class="graphql-explorer-note">
@@ -115,6 +128,8 @@ $this->headScript()->appendFile($this->assetUrl('js/graphql-explorer.js', 'Omeka
 // a static asset with no translator to call.
 ?>
 <p class="graphql-samples-status" role="status"
+   data-jsonld-message="<?php echo $escape($translate('Answers will come back as JSON-LD. Run the query again to see it.')); ?>"
+   data-json-message="<?php echo $escape($translate('Answers will come back as the GraphQL JSON envelope.')); ?>"
    data-unavailable-message="<?php echo $escape($translate('“%s” could not be loaded: the editor is not ready yet.')); ?>"></p>
 
 <div id="graphiql" class="graphql-graphiql" data-endpoint="<?php echo $escape($endpoint); ?>">

@@ -64,7 +64,8 @@
 }
 
 .graphql-explorer-version,
-.graphql-samples {
+.graphql-samples,
+.graphql-format {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
@@ -75,18 +76,24 @@
    want: the row spaces itself. */
 .graphql-explorer-version select,
 .graphql-explorer-version .button,
-.graphql-samples select {
+.graphql-samples select,
+.graphql-format select {
     margin-bottom: 0;
 }
 
 .graphql-explorer-version label,
-.graphql-samples label {
+.graphql-samples label,
+.graphql-format label {
     font-weight: bold;
 }
 
 .graphql-explorer-version select {
     width: auto;
     min-width: 9em;
+}
+
+.graphql-format select {
+    width: auto;
 }
 
 /* Wide enough for the longest sample title rather than for the placeholder,
